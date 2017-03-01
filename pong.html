@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>| .     |</title>
+	<style>
+		#field {
+			width: 800px;
+			height: 600px;
+			background-color: black;
+			position: relative;
+		}
+
+		#left_paddle {
+			width: 20px;
+			height: 100px;
+			background-color: white;
+			position: absolute;
+		}
+
+		#right_paddle {
+			width: 20px;
+			height: 100px;
+			background-color: yellow;
+			position: absolute;
+		}
+
+		#ball {
+			width: 20px;
+			height: 20px;
+			background-color: white;
+			position: absolute;
+		}
+
+		#scoreL{
+			color: white;
+			padding-right: 15px;
+		}
+
+		#scoreR{
+			color: yellow;
+			padding-left: 15px;
+		}
+
+		#scorebox{
+			width: 100%;
+			text-align: center;
+			font-size: 20px;
+			color: white;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="field">
+		<div id="left_paddle"></div>
+		<div id="right_paddle"></div>
+		<div id="ball"></div>
+		<div id ="scorebox"><span id="scoreL"></span> SCORE <span id="scoreR"></span></div>
+	</div>
+	<script>
+		var field = document.getElementById("field");
+		var left_paddle = document.getElementById("left_paddle");
+		var right_paddle = document.getElementById("right_paddle");
+		var ball = document.getElementById("ball");
+		var scoreLele = document.getElementById("scoreL");
+		var scoreRele = document.getElementById("scoreR");
+
+
+		// "Constant" numbers, so that we know what we're referring to
+		var BALL_HEIGHT = 20;
+		var BALL_WIDTH = 20;
+		var SCREEN_HEIGHT = 600;
+		var SCREEN_WIDTH = 800;
+		var PADDLE_HEIGHT = 100;
+		var PADDLE_WIDTH = 20;
+		var PADDLE_OFFSET = 20; //offset from side
+
+		var ball_x = 100; //position in the x dir
+		var ball_y = 100; //position in the y dir
+
+		var ball_vx = -4; //velocity in the x dir
+		var ball_vy = 4; //velocity in the y dir
+
+		var left_paddle_y = 100; // controlled by mouse, 100 default
+		var left_paddle_x = 20; // does not change
+
+		var right_paddle_y = 100; //MBO controlled by algo 
+		var right_paddle_x = 760; // does not change
+
+		var scoreR = 0; 
+		var scoreL = 0;
+
+		function update() {
+			ball_x += ball_vx; // add the vx to the position
+			ball_y += ball_vy; // add the vy to the position
+
+			if (ball_y + BALL_HEIGHT > SCREEN_HEIGHT &&
+				ball_vy > 0) 
+			{
+				// if the ball is off the bottom of the screen
+				// and still moving downwards
+				ball_y = SCREEN_HEIGHT - BALL_HEIGHT; //mbo no getting caught ob
+				ball_vy = ball_vy * -1;
+			} 
+
+			else if (ball_y < 0 && ball_vy < 0) 
+			{
+				// if the ball is off the top of the screen
+				// and still moving upwards
+				ball_y = 0; //mbo no getting caught ob
+				ball_vy = ball_vy * -1;
+			}
+//mbo collisions
+
+// if ball = playerpaddle and is still moving l
+
+			else if (ball_x < 40 && ((ball_y > left_paddle_y) && (ball_y + BALL_HEIGHT < left_paddle_y + PADDLE_HEIGHT)) && ball_vx < 0)
+			{
+				ball_x = 40;
+				ball_vx = ball_vx * -1;
+			}
+
+// if ball = computerpaddle and is still moving r
+
+			else if (ball_x > 740 && ((ball_y > right_paddle_y) && (ball_y + BALL_HEIGHT < right_paddle_y + PADDLE_HEIGHT)) && ball_vx > 0)
+			{
+				ball_x = 740;
+				ball_vx = ball_vx * -1;
+			}
+
+		}
+
+		function draw() {
+			// update the HTML element to reflect our new position
+
+			//ball
+			ball.style.top = ball_y + "px";
+			ball.style.left = ball_x + "px";
+
+			//left paddle
+			left_paddle.style.top = left_paddle_y + "px";
+			left_paddle.style.left = left_paddle_x + "px";
+
+			//mbo
+			right_paddle.style.top = right_paddle_y + "px";
+			right_paddle.style.left = right_paddle_x + "px";
+
+			scoreLele.style.left = 20;
+			scoreRele.style.left = 780;
+			scoreLele.innerHTML = scoreL;
+			scoreRele.innerHTML = scoreR;
+
+		}
+
+
+		function loop() {
+			update();
+			updateComputerPaddle();
+			limitPaddles();
+			score();
+			draw();
+		}
+
+		function updatePlayerPaddle(event) {
+			// adjust the left paddle, relative to the field element
+			var rect = field.getBoundingClientRect();
+			left_paddle_y = event.clientY - rect.top;
+		}
+
+		// When we move the mouse, update the player's paddle
+		field.onmousemove = updatePlayerPaddle;
+
+		function updateComputerPaddle()//mbo not sure this reacts on event.  may need another var
+		{		
+			//unbeatable
+			right_paddle_y = ball_y -50;
+
+			// idea for imperfect computer but messes up collision response
+			// right_paddle_vy = ball_vy;
+			// right_paddle_y += right_paddle_vy;
+ 
+			// if (right_paddle_y < 0)
+			// {
+			// 	right_paddle_y = 0;
+			// }
+			// else if (right_paddle_y > SCREEN_HEIGHT - PADDLE_HEIGHT)
+			// {
+			// 	right_paddle_y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+			// }
+
+
+//computer can miss idea #2 - causes all kinds of loop stick failures
+			//on inbound at a certain point tracks ball movement
+			
+
+			// if (ball_vx > 0 && ball_x > 200 && ball_y > 1 && right_paddle_y > 0)
+			// {
+			// 	right_paddle_y += ball_vy + 1;
+			// }
+			// else if (right_paddle_y < 0)
+			// {
+			// 	right_paddle_y = 0;
+			// }
+
+			// else if (ball_vx > 0 && ball_x > 200 && ball_y < 1 && ((right_paddle_y + PADDLE_HEIGHT) < SCREEN_HEIGHT))
+			// {
+			// 	right_paddle_y =  ball_vy - 1;
+			// }
+			// else if (right_paddle_y > (SCREEN_HEIGHT - PADDLE_HEIGHT))
+			// {
+			// 	right_paddle_y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+			// }
+
+
+
+			// else 			//on outbound and until react - random movement
+			// {
+			// 	right_paddle_y = right_paddle_y + ((math.round(Math.random()) * 2 - 1)*5);
+			// }
+
+		}
+
+		function limitPaddles () 
+		{
+			if (right_paddle_y < 0)
+			{
+				right_paddle_y = 0;
+			}
+			else if (right_paddle_y + PADDLE_HEIGHT > SCREEN_HEIGHT)
+			{
+				right_paddle_y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+			}
+			else if (left_paddle_y + PADDLE_HEIGHT > SCREEN_HEIGHT)
+			{
+				left_paddle_y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+			}
+		}
+
+		function score ()
+		{
+			if (ball_x < 5 && ball_x > 0)
+			{
+				scoreR = scoreR + 1;
+			} 
+			else if (ball_x > 795 && ball_x < 800)
+			{
+				scoreL = scoreL + 1;
+			}
+		}
+
+
+
+		// run the loop every 1/30 of a second (1000/30 ms)
+		setInterval(loop, 1000 / 30);
+
+
+	</script>
+</body>
+</html>

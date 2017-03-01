@@ -1,0 +1,7 @@
+* Left Paddle Collision Detection
+
+* Display the Score
+
+* Right Paddle (computer controlled)
+
+* Ball off side: +1 to score, reset ball to center
